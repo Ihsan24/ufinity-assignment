@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Select } from "antd";
+import { Select, Image } from "antd";
 import styles from "@/styles/Home.module.css";
 
 export default function Home() {
+  const [trafficImgData, setTrafficImgData] = useState([]);
   const [selectOptions, setSeletOptions] = useState([]);
+  const [selectedData, setSelectedData] = useState("");
 
   const onSetSelectOptions = (data) => {
     const arr = [];
@@ -11,18 +13,24 @@ export default function Home() {
       arr.push({
         value: item.camera_id,
         label: item.location.latitude + ", " + item.location.longitude,
+        image: item.image,
       });
     });
     setSeletOptions(arr);
   };
 
-  const onSelectLocationHandler = () => {};
+  const onSelectLocationHandler = (val) => {
+    const obj = trafficImgData.find((x) => x.camera_id === val);
+    console.log("obj: ", obj);
+    if(obj) setSelectedData(obj);
+  };
 
   useEffect(() => {
     fetch(`https://api.data.gov.sg/v1/transport/traffic-images?date_time=2023-07-30T15:05:00`)
       .then((res) => res.json())
       .then((data) => {
         console.log("traffic images data: ", data);
+        setTrafficImgData(data.items[0].cameras);
         onSetSelectOptions(data.items[0].cameras);
       })
       .catch((error) => {
@@ -54,6 +62,11 @@ export default function Home() {
         filterOption={(input, option) => (option?.label ?? "").includes(input)}
         filterSort={(optionA, optionB) => (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())}
       />
+      {selectedData && (
+        <div>
+          <Image width={selectedData.image_metadata?.width < 600 ? selectedData.image_metadata.width : 600} src={selectedData.image} />
+        </div>
+      )}
     </>
   );
 }
