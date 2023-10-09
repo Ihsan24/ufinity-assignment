@@ -13,6 +13,7 @@ export default function Home() {
   const [geocodeData, setGeocodeData] = useState([]);
   const [forecastData, setForecastData] = useState([]);
   const [selectedForecast, setSelectedForecast] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const resetData = () => {
     setTrafficImgData([]);
@@ -111,11 +112,13 @@ export default function Home() {
   const onSearchHanlder = () => {
     resetData();
 
+    setLoading(true);
     onGetForecastHandler();
     onGetTrafficImgHandler();
   };
 
   useEffect(() => {
+    setLoading(false); //geocodeData will always update even if no api call @onReverseGeocode
     let options = [];
     const result = trafficImgData.map((item) => {
       const data = geocodeData.find((geoItem) => geoItem.latlongStr === item.location.latitude + "," + item.location.longitude);
@@ -139,7 +142,7 @@ export default function Home() {
       <Space>
         <DatePicker defaultValue={dayjs()} format={"YYYY-MM-DD"} onChange={(val) => setSelectedDate(dayjs(val).format("YYYY-MM-DD"))} />
         <TimePicker defaultValue={dayjs()} format={"HH:mm:ss"} onChange={(val) => setSelectedTime(dayjs(val).format("HH:mm:ss"))} />
-        <Button type="primary" onClick={onSearchHanlder}>
+        <Button type="primary" onClick={onSearchHanlder} loading={loading}>
           Search
         </Button>
       </Space>
