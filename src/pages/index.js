@@ -100,7 +100,7 @@ export default function Home() {
         if (data.items[0]?.forecasts) {
           setForecastData(data.items[0].forecasts);
         } else {
-          console.log('forecast api NO Data');
+          console.log("forecast api NO Data");
         }
       })
       .catch((error) => {
@@ -137,8 +137,8 @@ export default function Home() {
     <>
       <h1>Ufinity Assignment</h1>
       <Space>
-        <DatePicker onChange={(val) => setSelectedDate(dayjs(val).format("YYYY-MM-DD"))} />
-        <TimePicker onChange={(val) => setSelectedTime(dayjs(val).format("HH:mm:ss"))} />
+        <DatePicker defaultValue={dayjs()} format={"YYYY-MM-DD"} onChange={(val) => setSelectedDate(dayjs(val).format("YYYY-MM-DD"))} />
+        <TimePicker defaultValue={dayjs()} format={"HH:mm:ss"} onChange={(val) => setSelectedTime(dayjs(val).format("HH:mm:ss"))} />
         <Button type="primary" onClick={onSearchHanlder}>
           Search
         </Button>
@@ -159,7 +159,7 @@ export default function Home() {
       </div>
 
       {selectedForecast && (
-        <Card hoverable style={{ width: 240 }}>
+        <Card style={{ width: 240 }}>
           <Meta title={selectedForecast.area} description={selectedForecast.forecast} />
         </Card>
       )}
