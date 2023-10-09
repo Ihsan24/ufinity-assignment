@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Select, Image, Space, DatePicker, TimePicker, Button } from "antd";
+import { Select, Image, Space, DatePicker, TimePicker, Button, Card } from "antd";
 import dayjs from "dayjs";
 import { isEmpty, get } from "lodash";
 import styles from "@/styles/Home.module.css";
+
+const { Meta } = Card;
 
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState(dayjs().format("YYYY-MM-DD"));
@@ -11,17 +13,31 @@ export default function Home() {
   const [selectedData, setSelectedData] = useState("");
   const [locationSelectOptions, setLocationSelectOptions] = useState([]);
   const [geocodeData, setGeocodeData] = useState([]);
+  const [forecastData, setForecastData] = useState([]);
+  const [selectedForecast, setSelectedForecast] = useState("");
 
   const resetData = () => {
     setTrafficImgData([]);
-    setLocationSelectOptions([]);
     setSelectedData("");
+    setLocationSelectOptions([]);
+    setForecastData([]);
+    setSelectedForecast("");
+  };
+
+  const onSelectForecast = (obj) => {
+    const val = forecastData.find((x) => x.area === obj.geocode.address.suburb);
+    console.log("forecastData: ", forecastData);
+    console.log("obj: ", obj);
+    console.log("val: ", val);
+    if (val) setSelectedForecast(val);
   };
 
   const onSelectLocationHandler = (val) => {
     const obj = trafficImgData.find((x) => x.camera_id === val);
-    console.log('obj: ', obj);
-    if (obj) setSelectedData(obj);
+    if (obj) {
+      onSelectForecast(obj);
+      setSelectedData(obj);
+    }
   };
 
   const onReverseGeocode = async (items) => {
@@ -65,8 +81,6 @@ export default function Home() {
   };
 
   const onGetTrafficImgHandler = () => {
-    resetData();
-
     fetch(`https://api.data.gov.sg/v1/transport/traffic-images?date_time=${selectedDate}T${selectedTime}`)
       .then((res) => res.json())
       .then((data) => {
@@ -82,16 +96,23 @@ export default function Home() {
       });
   };
 
-  useEffect(() => {
-    fetch(`https://api.data.gov.sg/v1/environment/2-hour-weather-forecast?date_time=2023-07-30T15:05:00`)
+  const onGetForecastHandler = () => {
+    fetch(`https://api.data.gov.sg/v1/environment/2-hour-weather-forecast?date_time=${selectedDate}T${selectedTime}`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("weather forecast data: ", data);
+        setForecastData(data.items[0].forecasts);
       })
       .catch((error) => {
         console.log("weather forecast data error: ", error);
       });
-  }, []);
+  };
+
+  const onSearchHanlder = () => {
+    resetData();
+
+    onGetForecastHandler();
+    onGetTrafficImgHandler();
+  };
 
   useEffect(() => {
     let options = [];
@@ -107,8 +128,8 @@ export default function Home() {
       return { ...item, geocode: data };
     });
 
-    setLocationSelectOptions(options);//for select dropdown options
-    setTrafficImgData(result);//setState again with geocode data
+    setLocationSelectOptions(options); //for select dropdown options
+    setTrafficImgData(result); //setState again with geocode data
   }, [geocodeData]);
 
   return (
@@ -117,7 +138,7 @@ export default function Home() {
       <Space>
         <DatePicker onChange={(val) => setSelectedDate(dayjs(val).format("YYYY-MM-DD"))} />
         <TimePicker onChange={(val) => setSelectedTime(dayjs(val).format("HH:mm:ss"))} />
-        <Button type="primary" onClick={onGetTrafficImgHandler}>
+        <Button type="primary" onClick={onSearchHanlder}>
           Search
         </Button>
       </Space>
@@ -135,6 +156,12 @@ export default function Home() {
           filterSort={(optionA, optionB) => (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())}
         />
       </div>
+
+      {selectedForecast && (
+        <Card hoverable style={{ width: 240 }}>
+          <Meta title={selectedForecast.area} description={selectedForecast.forecast} />
+        </Card>
+      )}
 
       {selectedData && (
         <div>
