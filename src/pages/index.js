@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Select, Image, Space, DatePicker, TimePicker, Button, Card } from "antd";
+import { Layout, Col, Row, Select, Image, Space, DatePicker, TimePicker, Button, Card } from "antd";
 import dayjs from "dayjs";
 
 const { Meta } = Card;
+const { Content } = Layout;
 
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState(dayjs().format("YYYY-MM-DD"));
@@ -137,41 +138,62 @@ export default function Home() {
   }, [geocodeData]);
 
   return (
-    <>
-      <h1>Ufinity Assignment</h1>
-      <Space>
-        <DatePicker defaultValue={dayjs()} format={"YYYY-MM-DD"} onChange={(val) => setSelectedDate(dayjs(val).format("YYYY-MM-DD"))} />
-        <TimePicker defaultValue={dayjs()} format={"HH:mm:ss"} onChange={(val) => setSelectedTime(dayjs(val).format("HH:mm:ss"))} />
-        <Button type="primary" onClick={onSearchHanlder} loading={loading}>
-          Search
-        </Button>
-      </Space>
-      <div>
-        <Select
-          showSearch={true}
-          style={{
-            width: 500,
-          }}
-          placeholder="select a location"
-          onChange={onSelectLocationHandler}
-          options={locationSelectOptions}
-          optionFilterProp="children"
-          filterOption={(input, option) => (option?.label ?? "").includes(input)}
-          filterSort={(optionA, optionB) => (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())}
-        />
-      </div>
+    <Content
+      className="site-layout"
+      style={{
+        maxWidth: "1024px",
+        margin: "auto",
+      }}
+    >
+      <Row justify="center" align="middle" gutter={16}>
+        <Col xl={18} xs={24}>
+          <Card>
+            <h1 style={{ textAlign: "center" }}>Ufinity Assignment</h1>
 
-      {selectedForecast && (
-        <Card style={{ width: 240 }}>
-          <Meta title={selectedForecast.area} description={selectedForecast.forecast} />
-        </Card>
-      )}
-
-      {selectedData && (
-        <div>
-          <Image width={selectedData.image_metadata?.width < 600 ? selectedData.image_metadata.width : 600} src={selectedData.image} />
-        </div>
-      )}
-    </>
+            <Space.Compact block size="medium">
+              <DatePicker
+                style={{ width: "38%" }}
+                defaultValue={dayjs()}
+                format={"YYYY-MM-DD"}
+                onChange={(val) => setSelectedDate(dayjs(val).format("YYYY-MM-DD"))}
+              />
+              <TimePicker
+                style={{ width: "38%" }}
+                defaultValue={dayjs()}
+                format={"HH:mm:ss"}
+                onChange={(val) => setSelectedTime(dayjs(val).format("HH:mm:ss"))}
+              />
+              <Button style={{ width: "24%" }} type="primary" onClick={onSearchHanlder} loading={loading}>
+                Search
+              </Button>
+            </Space.Compact>
+            <div>
+              <Select
+                style={{ width: "100%", marginTop: "15px" }}
+                size="large"
+                showSearch={true}
+                placeholder="select a location"
+                onChange={onSelectLocationHandler}
+                options={locationSelectOptions}
+                optionFilterProp="children"
+                filterOption={(input, option) => (option?.label ?? "").includes(input)}
+                filterSort={(optionA, optionB) => (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())}
+              />
+            </div>
+            <div style={{ textAlign: "center", marginTop: "15px" }}>
+              <Image
+                style={{ width: selectedData.image_metadata?.width < '100%' ? selectedData.image_metadata.width : '100%', maxWidth: "100%" }}
+                src={selectedData.image}
+              />
+            </div>
+          </Card>
+        </Col>
+        <Col xl={6} xs={24}>
+          <Card title="Weather Forecast" style={{ width: 240, margin: "15px auto" }}>
+            <Meta title={selectedForecast.area} description={selectedForecast.forecast || "no data"} />
+          </Card>
+        </Col>
+      </Row>
+    </Content>
   );
 }
