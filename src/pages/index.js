@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Layout, Col, Row, Select, Image, Space, DatePicker, TimePicker, Button, Card } from "antd";
+import { Layout, Col, Row, Select, Image, Space, DatePicker, TimePicker, Button, Card, message } from "antd";
 import dayjs from "dayjs";
 
 const { Meta } = Card;
 const { Content } = Layout;
 
 export default function Home() {
+  const [messageApi, contextHolder] = message.useMessage();
   const [selectedDate, setSelectedDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [selectedTime, setSelectedTime] = useState(dayjs().format("HH:mm:ss"));
   const [trafficImgData, setTrafficImgData] = useState([]);
@@ -23,6 +24,13 @@ export default function Home() {
     setForecastData([]);
     setSelectedForecast("");
   };
+
+  const onShowErrorHandler = (msg) => {
+    messageApi.open({
+      type: 'error',
+      content: msg,
+    });
+  }
 
   const onSelectForecast = (obj) => {
     const val = forecastData.find((x) => x.area === obj.geocode.address.suburb);
@@ -88,10 +96,13 @@ export default function Home() {
           setTrafficImgData(data.items[0].cameras);
         } else {
           console.log("trafficImg api NO Data");
+          onShowErrorHandler("trafficImg api returns No Data");
         }
       })
       .catch((error) => {
         console.log("traffic images data error: ", error);
+        onShowErrorHandler("traffic images api fetch error");
+        setLoading(false);
       });
   };
 
@@ -103,10 +114,13 @@ export default function Home() {
           setForecastData(data.items[0].forecasts);
         } else {
           console.log("forecast api NO Data");
+          onShowErrorHandler("forecast api returns No Data");
         }
       })
       .catch((error) => {
         console.log("weather forecast data error: ", error);
+        onShowErrorHandler("weather forecast api fetch error");
+        setLoading(false);
       });
   };
 
@@ -138,62 +152,70 @@ export default function Home() {
   }, [geocodeData]);
 
   return (
-    <Content
-      className="site-layout"
-      style={{
-        maxWidth: "1024px",
-        margin: "auto",
-      }}
-    >
-      <Row justify="center" align="middle" gutter={16}>
-        <Col xl={18} xs={24}>
-          <Card>
-            <h1 style={{ textAlign: "center" }}>Ufinity Assignment</h1>
+    <>
+      {contextHolder}
+      <Content
+        className="site-layout"
+        style={{
+          maxWidth: "1024px",
+          margin: "auto",
+        }}
+      >
+        <Row justify="center" align="middle" gutter={16}>
+          <Col xl={18} xs={24}>
+            <Card>
+              <h1 style={{ textAlign: "center" }}>Ufinity Assignment</h1>
 
-            <Space.Compact block size="medium">
-              <DatePicker
-                style={{ width: "38%" }}
-                defaultValue={dayjs()}
-                format={"YYYY-MM-DD"}
-                onChange={(val) => setSelectedDate(dayjs(val).format("YYYY-MM-DD"))}
-              />
-              <TimePicker
-                style={{ width: "38%" }}
-                defaultValue={dayjs()}
-                format={"HH:mm:ss"}
-                onChange={(val) => setSelectedTime(dayjs(val).format("HH:mm:ss"))}
-              />
-              <Button style={{ width: "24%" }} type="primary" onClick={onSearchHanlder} loading={loading}>
-                Search
-              </Button>
-            </Space.Compact>
-            <div>
-              <Select
-                style={{ width: "100%", marginTop: "15px" }}
-                size="large"
-                showSearch={true}
-                placeholder="select a location"
-                onChange={onSelectLocationHandler}
-                options={locationSelectOptions}
-                optionFilterProp="children"
-                filterOption={(input, option) => (option?.label ?? "").includes(input)}
-                filterSort={(optionA, optionB) => (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())}
-              />
-            </div>
-            <div style={{ textAlign: "center", marginTop: "15px" }}>
-              <Image
-                style={{ width: selectedData.image_metadata?.width < '100%' ? selectedData.image_metadata.width : '100%', maxWidth: "100%" }}
-                src={selectedData.image}
-              />
-            </div>
-          </Card>
-        </Col>
-        <Col xl={6} xs={24}>
-          <Card title="Weather Forecast" style={{ width: 240, margin: "15px auto" }}>
-            <Meta title={selectedForecast.area} description={selectedForecast.forecast || "no data"} />
-          </Card>
-        </Col>
-      </Row>
-    </Content>
+              <Space.Compact block size="medium">
+                <DatePicker
+                  style={{ width: "38%" }}
+                  defaultValue={dayjs()}
+                  format={"YYYY-MM-DD"}
+                  onChange={(val) => setSelectedDate(dayjs(val).format("YYYY-MM-DD"))}
+                />
+                <TimePicker
+                  style={{ width: "38%" }}
+                  defaultValue={dayjs()}
+                  format={"HH:mm:ss"}
+                  onChange={(val) => setSelectedTime(dayjs(val).format("HH:mm:ss"))}
+                />
+                <Button style={{ width: "24%" }} type="primary" onClick={onSearchHanlder} loading={loading}>
+                  Search
+                </Button>
+              </Space.Compact>
+              <div>
+                <Select
+                  style={{ width: "100%", marginTop: "15px" }}
+                  size="large"
+                  showSearch={true}
+                  placeholder="select a location"
+                  onChange={onSelectLocationHandler}
+                  options={locationSelectOptions}
+                  optionFilterProp="children"
+                  filterOption={(input, option) => (option?.label ?? "").includes(input)}
+                  filterSort={(optionA, optionB) =>
+                    (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())
+                  }
+                />
+              </div>
+              <div style={{ textAlign: "center", marginTop: "15px" }}>
+                <Image
+                  style={{
+                    width: selectedData.image_metadata?.width < "100%" ? selectedData.image_metadata.width : "100%",
+                    maxWidth: "100%",
+                  }}
+                  src={selectedData.image}
+                />
+              </div>
+            </Card>
+          </Col>
+          <Col xl={6} xs={24}>
+            <Card title="Weather Forecast" style={{ width: 240, margin: "15px auto" }}>
+              <Meta title={selectedForecast.area} description={selectedForecast.forecast || "no data"} />
+            </Card>
+          </Col>
+        </Row>
+      </Content>
+    </>
   );
 }
