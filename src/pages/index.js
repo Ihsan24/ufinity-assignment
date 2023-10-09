@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Select, Image, Space, DatePicker, TimePicker, Button, Card } from "antd";
 import dayjs from "dayjs";
-import { isEmpty, get } from "lodash";
-import styles from "@/styles/Home.module.css";
 
 const { Meta } = Card;
 
@@ -26,9 +24,6 @@ export default function Home() {
 
   const onSelectForecast = (obj) => {
     const val = forecastData.find((x) => x.area === obj.geocode.address.suburb);
-    console.log("forecastData: ", forecastData);
-    console.log("obj: ", obj);
-    console.log("val: ", val);
     if (val) setSelectedForecast(val);
   };
 
@@ -71,13 +66,15 @@ export default function Home() {
       }
     }
     setGeocodeData([...geocodeData, ...result]);
+    //geocodeData to remain as long the page is not unmounted
+    //prevent unnecessary reverseGeocode api call
   };
 
   const onCheckGeocode = (data) => {
     const result = data.filter(
       (item) => !geocodeData.some((geoItem) => geoItem.latlongStr === item.location.latitude + "," + item.location.longitude)
     );
-    onReverseGeocode(result);
+    onReverseGeocode(result); //on call api for those does not exist in geocodeData
   };
 
   const onGetTrafficImgHandler = () => {
@@ -88,7 +85,7 @@ export default function Home() {
           onCheckGeocode(data.items[0].cameras);
           setTrafficImgData(data.items[0].cameras);
         } else {
-          //display no data found
+          console.log("trafficImg api NO Data");
         }
       })
       .catch((error) => {
@@ -100,7 +97,11 @@ export default function Home() {
     fetch(`https://api.data.gov.sg/v1/environment/2-hour-weather-forecast?date_time=${selectedDate}T${selectedTime}`)
       .then((res) => res.json())
       .then((data) => {
-        setForecastData(data.items[0].forecasts);
+        if (data.items[0]?.forecasts) {
+          setForecastData(data.items[0].forecasts);
+        } else {
+          console.log('forecast api NO Data');
+        }
       })
       .catch((error) => {
         console.log("weather forecast data error: ", error);
