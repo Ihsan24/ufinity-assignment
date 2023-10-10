@@ -191,11 +191,7 @@ export default function Home() {
                   placeholder="select a location"
                   onChange={onSelectLocationHandler}
                   options={locationSelectOptions}
-                  optionFilterProp="children"
-                  filterOption={(input, option) => (option?.label ?? "").includes(input)}
-                  filterSort={(optionA, optionB) =>
-                    (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())
-                  }
+                  optionFilterProp="label"
                 />
               </div>
               <div style={{ textAlign: "center", marginTop: "15px" }}>
